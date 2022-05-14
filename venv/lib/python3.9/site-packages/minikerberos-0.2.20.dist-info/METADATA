@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: minikerberos
+Version: 0.2.20
+Summary: Kerberos manipulation library in pure Python
+Home-page: https://github.com/skelsec/minikerberos
+Author: Tamas Jos
+Author-email: info@skelsec.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.6
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Requires-Dist: asn1crypto (>=1.3.0)
+Requires-Dist: asysocks (>=0.0.11)
+Requires-Dist: oscrypto (>=1.2.1)
+Requires-Dist: unicrypto (>=0.0.4)
+
+UNKNOWN
+
+

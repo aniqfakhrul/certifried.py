@@ -91,11 +91,11 @@ class GETPAC(object):
 
         if not found:
             logging.info('Did not find the PAC_CREDENTIAL_INFO in the PAC. Are you sure your TGT originated from a PKINIT operation?')
-    def __init__(self, username, domain, options):
+    def __init__(self, username, domain, key, options):
         self.__username = username
         self.__domain = domain.upper()
         self.__kdcHost = options.dc_ip
-        self.__asrep_key = options.key
+        self.__asrep_key = key
 
     def dump(self):
         # Try all requested protocols until one works.
@@ -103,6 +103,7 @@ class GETPAC(object):
         # Do we have a TGT cached?
         tgt = None
         try:
+            print(os.getenv('KRB5CCNAME'))
             ccache = CCache.loadFile(os.getenv('KRB5CCNAME'))
             logging.debug("Using Kerberos Cache: %s" % os.getenv('KRB5CCNAME'))
             principal = 'krbtgt/%s@%s' % (self.__domain.upper(), self.__domain.upper())
@@ -236,43 +237,5 @@ class GETPAC(object):
         specialkey = Key(18, unhexlify(self.__asrep_key))
         self.printPac(plainText, specialkey)
 
-# Process command-line arguments.
-if __name__ == '__main__':
-    logger.init()
-    print(version.BANNER)
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('identity', action='store', help='domain/username')
-    parser.add_argument('-key', action='store', required=True, help='AS REP key from gettgtpkinit.py')
-    parser.add_argument('-dc-ip', action='store',metavar = "ip address",  help='IP Address of the domain controller. If '
-                       'ommited it use the domain part (FQDN) specified in the target parameter')
-    parser.add_argument('-debug', action='store_true', help='Turn DEBUG output ON')
-    if len(sys.argv)==1:
-        parser.print_help()
-        sys.exit(1)
-
-    options = parser.parse_args()
-
-    domain, username, password = parse_credentials(options.identity)
-
-
-    if domain is None:
-        logging.critical('Domain should be specified!')
-        sys.exit(1)
-
-    if options.debug is True:
-        logging.getLogger().setLevel(logging.DEBUG)
-        # Print the Library's installation path
-        logging.debug(version.getInstallationPath())
-    else:
-        logging.getLogger().setLevel(logging.INFO)
-
-    try:
-        dumper = GETPAC(username, domain, options)
-        dumper.dump()
-    except Exception as e:
-        if logging.getLogger().level == logging.DEBUG:
-            import traceback
-            traceback.print_exc()
-        logging.error(str(e))
+        #dumper = GETPAC(username, domain, options)
+        #dumper.dump()

@@ -52,6 +52,7 @@ def main_req(args,ca_host,ca_service,username,password,domain,lmhash,nthash,cert
     print("[*] Template: {}".format(args.template))
     print("[*] Username: {}".format(username))
     print(ca_host,username,password,domain,lmhash,nthash,args.aesKey,True,args.dc_ip)
+    
     dcom = DCOMConnection(
         ca_host,
         username=username,
@@ -83,7 +84,7 @@ def main_req(args,ca_host,ca_service,username,password,domain,lmhash,nthash,cert
         print("[*] Response: 0x{:X} {}".format(resp["Disposition"], resp["DispositionMessage"]))
 
         if resp["EncodedCert"]:
-            process_cert(
+            pfx_bytes = process_cert(
                 key,
                 resp["EncodedCert"],
                 cert_pass,
@@ -92,6 +93,8 @@ def main_req(args,ca_host,ca_service,username,password,domain,lmhash,nthash,cert
             )
         else:
             print("[-] No certificate was returned")
+
+        return pfx_bytes
 
     except DCERPCSessionError as ex:
         print("Error: {}".format(ex), file=sys.stderr)
@@ -148,6 +151,7 @@ def process_cert(key, encoded_cert, cert_pass, out_file, cn):
         pfx_filename,
         cert_password.decode()
     ))
+    return pfx_bytes
 
 
 def main_list(args):

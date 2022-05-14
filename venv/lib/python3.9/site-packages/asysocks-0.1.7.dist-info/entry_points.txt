@@ -1,0 +1,7 @@
+[console_scripts]
+asysocksbrute = asysocks.examples.socksbrute:main
+asysocksportscan = asysocks.examples.socksportscan:main
+asysocksproxy = asysocks.examples.socksproxy:main
+asysockssec = asysocks.examples.sockssec:main
+asysockstunnel = asysocks.examples.sockstunnel:main
+

