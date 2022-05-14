@@ -1,3 +1,0 @@
-#!/opt/Certifried/venv/bin/python3
-from ldapdomaindump import convert
-convert.ldd2bloodhound()
