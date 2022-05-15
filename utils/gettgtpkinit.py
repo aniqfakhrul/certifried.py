@@ -42,12 +42,16 @@ class myPKINIT(PKINIT):
     With some changes where it differs from PKINIT used in NegoEx
     """
 
-    @staticmethod
-    def from_pfx(pfxfile, pfxpass, dh_params = None):
-        with open(pfxfile, 'rb') as f:
-            pfxdata = f.read()
-        return myPKINIT.from_pfx_data(pfxdata, pfxpass, dh_params)
+    #@staticmethod
+    #def from_pfx(pfxfile, pfxpass, dh_params = None):
+    #    with open(pfxfile, 'rb') as f:
+    #        pfxdata = f.read()
+    #    return myPKINIT.from_pfx_data(pfxdata, pfxpass, dh_params)
 
+    @staticmethod
+    def from_pfx(pfxdata, pfxpass, dh_params = None):
+        return myPKINIT.from_pfx_data(pfxdata, pfxpass, dh_params)
+    
     @staticmethod
     def from_pfx_data(pfxdata, pfxpass, dh_params = None):
         pkinit = myPKINIT()
@@ -309,5 +313,6 @@ def amain(args,cert_pass,cert_pfx,domain,username):
     ccache = CCACHE()
     ccache.add_tgt(res.native, encasrep)
     ccache.to_file(f'{username}.ccache')
+    ccache_bytes = ccache.to_bytes()
     logger.info('Saved TGT to file')
-    return enc_key
+    return enc_key, ccache_bytes

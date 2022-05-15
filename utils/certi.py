@@ -48,10 +48,10 @@ def target_creds_type(target):
 
 
 def main_req(args,ca_host,ca_service,username,password,domain,lmhash,nthash,cert_pass):
-    print("[*] Service: {}".format(ca_service))
-    print("[*] Template: {}".format(args.template))
-    print("[*] Username: {}".format(username))
-    print(ca_host,username,password,domain,lmhash,nthash,args.aesKey,True,args.dc_ip)
+    print("[ certi ] Service: {}".format(ca_service))
+    print("[ certi ] Template: {}".format(args.template))
+    print("[ certi ] Username: {}".format(username))
+    #print(ca_host,username,password,domain,lmhash,nthash,args.aesKey,True,args.dc_ip)
     
     dcom = DCOMConnection(
         ca_host,
@@ -81,7 +81,7 @@ def main_req(args,ca_host,ca_service,username,password,domain,lmhash,nthash,cert
         }
         
         resp = request_cert(dcom, ca_service, csr, attributes)
-        print("[*] Response: 0x{:X} {}".format(resp["Disposition"], resp["DispositionMessage"]))
+        print("[ certi ] Response: 0x{:X} {}".format(resp["Disposition"], resp["DispositionMessage"]))
 
         if resp["EncodedCert"]:
             pfx_bytes = process_cert(
@@ -119,15 +119,14 @@ def request2_cert(dcom, service, csr, attributes):
 def process_cert(key, encoded_cert, cert_pass, out_file, cn):
     cert = load_x509_certificate(encoded_cert, cert_format="der")
 
-    print("")
-    print("[*] Cert subject: {}".format(cert.subject.rfc4514_string()))
-    print("[*] Cert issuer: {}".format(cert.issuer.rfc4514_string()))
-    print("[*] Cert Serial: {:X}".format(cert.serial_number))
+    print("[ certi ] Cert subject: {}".format(cert.subject.rfc4514_string()))
+    print("[ certi ] Cert issuer: {}".format(cert.issuer.rfc4514_string()))
+    print("[ certi ] Cert Serial: {:X}".format(cert.serial_number))
 
     # print(cert_to_pem(cert).decode())
     extended_usages = cert_get_extended_key_usage(cert)
     if extended_usages:
-        print("[*] Cert Extended Key Usage: {}".format(", ".join([
+        print("[ certi ] Cert Extended Key Usage: {}".format(", ".join([
             EKUS_NAMES.get(oid, oid) for oid in extended_usages
         ])))
 
@@ -143,14 +142,14 @@ def process_cert(key, encoded_cert, cert_pass, out_file, cn):
     if out_file:
         pfx_filename = out_file
 
-    with open(pfx_filename, "wb") as fo:
-        fo.write(pfx_bytes)
+    #with open(pfx_filename, "wb") as fo:
+    #    fo.write(pfx_bytes)
 
-    print()
-    print("[*] Saving certificate in {} (password: {})".format(
-        pfx_filename,
-        cert_password.decode()
-    ))
+    #print()
+    #print("[*] Saving certificate in {} (password: {})".format(
+    #    pfx_filename,
+    #    cert_password.decode()
+    #))
     return pfx_bytes
 
 

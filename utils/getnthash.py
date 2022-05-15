@@ -91,11 +91,11 @@ class GETPAC(object):
 
         if not found:
             logging.info('Did not find the PAC_CREDENTIAL_INFO in the PAC. Are you sure your TGT originated from a PKINIT operation?')
-    def __init__(self, username, domain, key, options):
+    def __init__(self, username, domain, options):
         self.__username = username
         self.__domain = domain.upper()
         self.__kdcHost = options.dc_ip
-        self.__asrep_key = key
+        self.__asrep_key = options.key
 
     def dump(self):
         # Try all requested protocols until one works.
@@ -103,7 +103,7 @@ class GETPAC(object):
         # Do we have a TGT cached?
         tgt = None
         try:
-            print(os.getenv('KRB5CCNAME'))
+            #print(os.getenv('KRB5CCNAME'))
             ccache = CCache.loadFile(os.getenv('KRB5CCNAME'))
             logging.debug("Using Kerberos Cache: %s" % os.getenv('KRB5CCNAME'))
             principal = 'krbtgt/%s@%s' % (self.__domain.upper(), self.__domain.upper())

