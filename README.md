@@ -1,5 +1,8 @@
 # Certifried 
 
+## Why Certifried?
+Certifried makes steps easier to replicate to abuse the new CVE-2022-26923. However below is the manual steps to replicate the vulnerability. Detailed article can be read [here](https://research.ifcr.dk/certifried-active-directory-domain-privilege-escalation-cve-2022-26923-9e098fe298f4) from the original author.
+
 ## Usage
 1. Recover NTLM hash
 ```

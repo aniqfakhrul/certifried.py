@@ -160,7 +160,6 @@ class Exploit:
             # request certificate
             # find ca service
             enrollment_service = self.find_enrollment_services(ldap_session,domain_dumper.getRoot())
-
             if self.options.ca:
                 ca_service = self.options.ca
                 ca_host = self.options.ca_host
