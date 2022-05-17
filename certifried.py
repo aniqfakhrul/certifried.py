@@ -67,7 +67,7 @@ class Exploit:
         cnf.basepath = None
         domain_dumper = ldapdomaindump.domainDumper(ldap_server, ldap_session, cnf)
         check_domain = ".".join(domain_dumper.getRoot().replace("DC=","").split(","))
-        if domain != check_domain:
+        if domain.upper() != check_domain.upper():
             logging.error("Pls use full domain name, such as: domain.com/username")
             return
         MachineAccountQuota = 10
